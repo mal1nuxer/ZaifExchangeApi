@@ -1,10 +1,19 @@
 # -*- coding: utf-8 -*-
-import urllib
 import json
 import time
 import hmac
 import hashlib
-import httplib
+import sys
+
+ver = int(sys.version[0])
+if ver >= 3:
+    import http.client as httpcon
+    from urllib.request import urlopen as urlop
+    from urllib.parse import urlencode as urlenc
+elif 2 <= ver < 3:
+    from urllib import urlopen as urlop
+    from urllib import urlencode as urlenc
+    import httplib as httpcon
 
 publicMethodList = ('last_price', 'ticker', 'trades', 'depth')
 tradeMethodList = ('get_info', 'trade_history', 'active_orders', 'trade',
@@ -26,7 +35,7 @@ class Zaif(object):
 
         if method in self.__public_set:
             request_url = base_url + 'api/1/' + method + '/' + options
-            response = json.loads(urllib.urlopen(request_url).read())
+            response = json.loads(urlop(request_url).read().decode('utf-8'))
             return response
 
         elif method in self.__trade_set:
@@ -37,13 +46,16 @@ class Zaif(object):
                 zaif_query.update(options)
 
             headers = {"key": self.__api_key,
-                       "sign": hmac.new(self.__api_secret,
-                                        urllib.urlencode(zaif_query),
+                       "sign": hmac.new(self.__api_secret.encode('utf-8'),
+                                        urlenc(zaif_query).encode('utf-8'),
                                         digestmod=hashlib.sha512).hexdigest()}
-            session = httplib.HTTPSConnection("zaif.jp")
-            session.request("post", "/tapi", urllib.urlencode(zaif_query),
+
+            session = httpcon.HTTPSConnection("zaif.jp")
+            session.request("post",
+                            "/tapi",
+                            urlenc(zaif_query).encode('utf-8'),
                             headers)
-            response = json.loads(session.getresponse().read())
+            response = json.loads(session.getresponse().read().decode('utf-8'))
             session.close()
 
             if response['success'] == 1:

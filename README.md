@@ -29,6 +29,7 @@ print(Zaif.get_info())
 留意
 ------
 ***
+動作確認済 2.7.11, 3.5.1
 Pythonのネイティブモジュールで動くように作っていますが  
 websocketを利用したws_depthについては別途モジュールが必要です  
 https://github.com/liris/websocket-client  
